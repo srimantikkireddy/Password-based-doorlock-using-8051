@@ -44,12 +44,12 @@ DISPLAY_CHAR_LCD:
     RET
 
 DISPLAY_STRING_LCD:
-    MOV R2, #00H
+    MOV A, #00H
 DISPLAY_STRING_LOOP:
-    MOV A, @R2
+    MOVC A, @A+DPTR   
     JZ DISPLAY_STRING_DONE
     CALL DISPLAY_CHAR_LCD
-    INC R2
+    INC DPTR
     JMP DISPLAY_STRING_LOOP
 DISPLAY_STRING_DONE:
     RET
@@ -64,7 +64,7 @@ ROTATE_MOTOR:
     RET
 
 MOTOR_DELAY:
-    MOV R3, #0C8H          
+    MOV R3, #0FFH          
 OUTER_LOOP:
     MOV R2, #0FFH          
 INNER_LOOP:
@@ -108,8 +108,47 @@ PASSWORD_INCORRECT:
     JMP PASSWORD_ENTRY_LOOP
 
 GET_PASSWORD:
-    MOV R0, #56H
-    MOV R1, #78H
+    CALL READ_KEYPAD
+    MOV R0, A
+    CALL READ_KEYPAD
+    MOV R1, A
+    RET
+
+READ_KEYPAD:
+    MOV P1, #0F0H  
+SCAN_COLUMN:
+    CLR P1.0       
+    MOV A, P1
+    ANL A, #0F0H   
+    JNZ CHECK_COL2 
+    MOV A, #31H    
+    RET
+
+CHECK_COL2:
+    SETB P1.0
+    CLR P1.1
+    MOV A, P1
+    ANL A, #0F0H
+    JNZ CHECK_COL3
+    MOV A, #32H    
+    RET
+
+CHECK_COL3:
+    SETB P1.1
+    CLR P1.2
+    MOV A, P1
+    ANL A, #0F0H
+    JNZ CHECK_COL4
+    MOV A, #33H    
+    RET
+
+CHECK_COL4:
+    SETB P1.2
+    CLR P1.3
+    MOV A, P1
+    ANL A, #0F0H
+    JNZ READ_KEYPAD
+    MOV A, #34H    
     RET
 
 DOOR_OPEN_MSG: DB 'Door Opening', 0
