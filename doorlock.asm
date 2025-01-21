@@ -111,19 +111,7 @@ PASSWORD_INCORRECT:
     CALL DISPLAY_STRING_LCD
     JMP PASSWORD_ENTRY_LOOP
 
-GET_PASSWORD:
-    CALL READ_KEYPAD
-    MOV R0, A  ;
-    CALL READ_KEYPAD
-    MOV R1, A  ; 
-    CALL READ_KEYPAD
-    MOV R2, A  ; 
-    CALL READ_KEYPAD
-    MOV R3, A  ; 
-    RET
-
-
-READ_KEYPAD:
+CHECK_PASSWORD:
     MOV P1, #0F0H  
 SCAN_COLUMN:
     CLR P1.0       
@@ -156,9 +144,46 @@ CHECK_COL4:
     CLR P1.3
     MOV A, P1
     ANL A, #0F0H
-    JNZ READ_KEYPAD
+    JNZ NEXT_ROW   
     MOV A, #34H    
     RET
+
+NEXT_ROW:
+    MOV P1, #0F0H
+    CLR P1.4
+    MOV A, P1
+    ANL A, #0F0H
+    JNZ CHECK_COL2_ROW2
+    MOV A, #35H
+    RET
+
+CHECK_COL2_ROW2:
+    SETB P1.4
+    CLR P1.5
+    MOV A, P1
+    ANL A, #0F0H
+    JNZ CHECK_COL3_ROW2
+    MOV A, #36H
+    RET
+
+CHECK_COL3_ROW2:
+    SETB P1.5
+    CLR P1.6
+    MOV A, P1
+    ANL A, #0F0H
+    JNZ CHECK_COL4_ROW2
+    MOV A, #37H
+    RET
+
+CHECK_COL4_ROW2:
+    SETB P1.6
+    CLR P1.7
+    MOV A, P1
+    ANL A, #0F0H
+    JNZ READ_KEYPAD
+    MOV A, #38H
+    RET
+
 
 DOOR_OPEN_MSG: DB 'Door Opening', 0
 WRONG_MSG: DB 'Wrong Password', 0
